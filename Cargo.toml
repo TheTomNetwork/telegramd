@@ -13,5 +13,5 @@ anyhow = "1.0.72"
 dotenv = "0.15.0"
 futures = "0.3.28"
 serde = { version = "1.0.183", features = ["derive"] }
-teloxide = { version = "0.12.2", features = ["full"] }
+teloxide = { version = "0.12.2", features = ["macros"] }
 tokio = { version = "1.29.1", features = ["rt-multi-thread", "full"] }
