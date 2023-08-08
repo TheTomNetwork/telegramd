@@ -24,7 +24,7 @@ const UPLOADED_FILES: &'static str = "uploaded_files";
 async fn main() -> Result<()> {
     dotenv()?;
     let _ = fs::create_dir(UPLOADED_FILES);
-    println!("Starting telegramd");
+    println!("Started telegramd");
 
     let command_listener = Command::repl(Bot::from_env(), Command::answer);
 
