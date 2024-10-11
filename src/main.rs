@@ -77,44 +77,51 @@ async fn send_file(
     };
 
     if let Some(message) = &chat_data.message {
-        if let Err(e) = bot
+        let res = bot
             .send_message(chat_data.chatid.clone(), message)
             .parse_mode(ParseMode::Html)
-            .await
-        {
+            .await;
+
+        if let Err(e) = res {
             return HttpResponse::InternalServerError().body(e.to_string());
         }
     }
 
     let mut errors = Vec::new();
     for path in paths {
-        if let Err(e) = bot
+        let res = bot
             .send_document(chat_data.chatid.clone(), InputFile::file(&path))
-            .await
-        {
+            .await;
+
+        if let Err(e) = res {
             errors.push(e);
         }
     }
 
     if errors.is_empty() {
-        HttpResponse::Accepted().finish()
-    } else {
-        let errors: Vec<_> = errors.iter().map(ToString::to_string).collect();
-        HttpResponse::InternalServerError()
-            .body(format!("Got the following errors: {}", errors.join(", ")))
+        return HttpResponse::Accepted().finish();
     }
+
+    let errors: Vec<_> = errors.iter().map(ToString::to_string).collect();
+    HttpResponse::InternalServerError()
+        .body(format!("Got the following errors: {}", errors.join(", ")))
 }
 
 async fn send_message<T: Deref<Target = ChatData<String>>>(
     bot: web::Data<Bot>,
     data: T,
 ) -> impl Responder {
-    bot.send_message(data.chatid.clone(), &data.message)
+    let res = bot
+        .send_message(data.chatid.clone(), &data.message)
         .parse_mode(ParseMode::Html)
         .send()
-        .await
-        .unwrap();
-    HttpResponse::Ok().body("Message sent!")
+        .await;
+
+    match res {
+        Ok(_) => HttpResponse::Ok().body("Message sent!"),
+        Err(e) => HttpResponse::InternalServerError()
+            .body(format!("Failed to send message to telegram: {:?}", e)),
+    }
 }
 
 #[derive(Debug, macros::BotCommands, Clone)]
